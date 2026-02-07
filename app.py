@@ -6,177 +6,135 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import make_pipeline
 import datetime
 
-# --- 1. PAGE CONFIGURATION & THEME ---
-st.set_page_config(page_title="PhishGuard AI Security", page_icon="🛡️", layout="wide")
+# --- Configuration (Mobile Optimized) ---
+st.set_page_config(page_title="PhishGuard Mobile", page_icon="🛡️", layout="centered")
 
-# Custom CSS for Professional UI/UX (Mobile & Desktop Friendly)
+# Custom CSS for Mobile App Feel
 st.markdown("""
     <style>
-    .main { background-color: #f4f7f6; }
+    /* মেইন ব্যাকগ্রাউন্ড */
+    .stApp { background-color: #F8F9FB; }
     
-    /* Primary Action Button Styling */
-    .stButton>button {
-        width: 100%;
-        border-radius: 12px;
+    /* হেডার ডিজাইন */
+    .app-header {
         background: linear-gradient(135deg, #e63946, #d62828);
+        padding: 20px;
+        border-radius: 0 0 25px 25px;
         color: white;
-        font-weight: bold;
-        border: none;
-        padding: 12px;
-        transition: 0.4s ease;
-    }
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
-    }
-    
-    /* Technical Note Section */
-    .info-note {
-        background-color: #eef2f7;
-        border-left: 5px solid #007bff;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 20px;
-        font-size: 14px;
-        color: #333;
+        text-align: center;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    /* Sticky/Standard Footer Branding */
-    .footer {
-        width: 100%;
-        background-color: #ffffff;
-        color: #333;
-        text-align: center;
-        padding: 20px;
-        font-size: 13px;
-        border-top: 1px solid #eaeaea;
-        margin-top: 40px;
+    /* ইনপুট বক্স বড় করা */
+    .stTextInput > div > div > input {
+        border-radius: 15px;
+        height: 50px;
+        border: 2px solid #eee;
     }
-    .contact-link { color: #e63946; text-decoration: none; font-weight: bold; }
-    
-    .status-online { color: #28a745; font-weight: bold; }
+
+    /* বাটনকে অ্যাপের মতো লুক দেওয়া */
+    .stButton > button {
+        width: 100%;
+        border-radius: 15px;
+        height: 55px;
+        background: #e63946;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        border: none;
+        box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+    }
+
+    /* রেজাল্ট কার্ড */
+    .result-card {
+        background: white;
+        padding: 20px;
+        border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-top: 15px;
+    }
+
+    /* মোবাইল নোট বক্স */
+    .mobile-note {
+        font-size: 12px;
+        color: #666;
+        background: #E8F0FE;
+        padding: 12px;
+        border-radius: 12px;
+        margin-top: 20px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. AI & HYBRID ML SYSTEM INITIALIZATION ---
+# --- Header ---
+st.markdown('<div class="app-header"><h1>🛡️ PhishGuard AI</h1><p>Security in your Pocket</p></div>', unsafe_allow_html=True)
 
-# Google Gemini AI Integration for Deep Heuristic Analysis
+# --- AI & Model Setup (Same Logic) ---
 try:
     API_KEY = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=API_KEY)
     gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-    status_html = '<span class="status-online">● Active</span>'
-except Exception:
+except:
     gemini_model = None
-    status_html = '<span style="color:red;">● Offline</span>'
 
-# Local ML Engine: Multinomial Naive Bayes trained on 30k+ URL patterns
 @st.cache_data
-def load_ml_engine():
+def train_engine():
     try:
         df = pd.read_csv("phishing.csv")
         df = df.rename(columns={"URL": "url", "Label": "label"})
         df['label'] = df['label'].map({'bad': 'Phishing', 'good': 'Safe'})
         return df.dropna()
-    except Exception:
-        # Fallback dataset if file is missing
+    except:
         return pd.DataFrame({'url': ['google.com'], 'label': ['Safe']})
 
-data = load_ml_engine()
-local_model = make_pipeline(CountVectorizer(), MultinomialNB())
-local_model.fit(data['url'], data['label'])
+data = train_engine()
+local_engine = make_pipeline(CountVectorizer(), MultinomialNB())
+local_engine.fit(data['url'], data['label'])
 
-# --- 3. SIDEBAR (Developer Profile & System Stats) ---
-with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=90)
-    st.title("PhishGuard Console")
-    st.markdown(f"**Security Status:** {status_html}", unsafe_allow_html=True)
-    st.divider()
-    
-    st.markdown("### 👤 Developer")
-    st.write("**Sorif Hossain**")
-    st.caption("Computer Science Student | Sripat Singh College")
-    
-    st.markdown("### 🔗 Connect With Me")
-    st.write("💼 [LinkedIn Profile](https://www.linkedin.com/in/sorif-hossain-24b946337)")
-    st.write("📧 [Email Me](mailto:codehackwithsorif@gmail.com)")
-    st.write("📱 [WhatsApp Channel](https://whatsapp.com/channel/0029VbBJa7iIt5rtVuNzfP2g)")
-    st.write("🎥 [YouTube Channel](https://www.youtube.com/channel/UCmGne4ahuFAAfD4sYP9nLDw)")
-    st.divider()
-    st.info("Hybrid AI system combining Local Machine Learning and Google Gemini LLM.")
+# --- Main App Body ---
+st.write("### Quick Scan")
+url_input = st.text_input("", placeholder="Paste Link Here...")
 
-# --- 4. MAIN USER INTERFACE ---
-st.title("🛡️ PhishGuard AI Security")
-st.markdown("##### *Advanced Threat Detection | Hybrid Intelligence Model*")
-st.divider()
-
-# URL Input Field
-url_input = st.text_input("🔗 Paste URL below to scan for threats:", placeholder="https://secure-login.example.com")
-
-if st.button("🔍 INITIATE DEEP SCAN"):
+if st.button("🚀 ANALYZE NOW"):
     if url_input:
-        # Phase 1: Local Machine Learning Prediction
-        local_pred = local_model.predict([url_input])[0]
-        
-        # Phase 2: Deep Analysis using Generative AI (Decision Override Layer)
-        with st.spinner("AI Brain is performing deep pattern analysis..."):
+        local_pred = local_engine.predict([url_input])[0]
+        with st.spinner("AI Checking..."):
             try:
-                prompt = (f"Act as a cybersecurity expert. Analyze the URL: '{url_input}'. "
-                          "Strictly follow this format: 'Verdict: [Safe/Phishing]'. "
-                          "Then provide one short technical reason.")
-                ai_response = gemini_model.generate_content(prompt).text
-                
-                # Logic to prioritize LLM decision over Local ML
-                if "PHISHING" in ai_response.upper():
-                    final_verdict = "Phishing"
-                else:
-                    final_verdict = "Safe"
-            except Exception:
-                ai_response = "Deep analysis unavailable due to network issues."
-                final_verdict = local_pred # Fallback to local model if AI fails
+                prompt = f"URL: '{url_input}'. Safe or Phishing? 1 sentence explanation."
+                response = gemini_model.generate_content(prompt).text
+                ai_verdict = "Safe" if "SAFE" in response.upper() else "Phishing"
+            except:
+                response = "Connection Error."
+                ai_verdict = local_pred
 
-        # Visualization of Hybrid Results
-        st.markdown("### 📊 Investigation Results")
-        col1, col2 = st.columns([1, 1])
-        
-        with col1:
-            st.write("**Local ML Engine:**")
-            if local_pred == "Safe":
-                st.success(f"Result: {local_pred}")
-            else:
-                st.error(f"Result: {local_pred}")
-                
-        with col2:
-            st.write("**Gemini AI Deep Analysis:**")
-            st.info(ai_response)
-
-        # Final Security Verdict (Powered by Gemini AI)
-        st.divider()
-        if final_verdict == "Phishing":
-            st.error("### 🚨 FINAL VERDICT: DANGEROUS LINK DETECTED!")
+        # Result Display
+        st.markdown('<div class="result-card">', unsafe_allow_html=True)
+        if ai_verdict == "Phishing":
+            st.error("🚨 DANGER: PHISHING DETECTED")
+            st.write(f"**AI Reason:** {response}")
             st.snow()
         else:
-            st.success("### ✅ FINAL VERDICT: THIS LINK IS SECURE.")
+            st.success("✅ SAFE: YOU ARE GOOD TO GO")
+            st.write(f"**AI Reason:** {response}")
             st.balloons()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        # Expert Technical Note
         st.markdown(f"""
-            <div class="info-note">
-                <b>ℹ️ Important Note:</b> Local AI analysis depends on fixed datasets and may occasionally provide incorrect results. 
-                However, <b>Google Gemini AI</b> is trained on a massive global scale, making it <b>99% accurate</b> 
-                in real-time threat detection. For maximum security, the <b>Final Verdict is always decided by Gemini AI</b>.
+            <div class="mobile-note">
+                <b>Note:</b> Hybrid analysis active. Gemini AI decision is final (99% accurate).
             </div>
         """, unsafe_allow_html=True)
     else:
-        st.warning("Please provide a valid URL to scan.")
+        st.warning("Please paste a link.")
 
-# --- 5. PROFESSIONAL BRANDING FOOTER ---
-current_year = datetime.datetime.now().year
-footer_html = f"""
-    <div class="footer">
-        © {current_year} <b>PhishGuard AI Security</b> | All Rights Reserved. <br>
-        Developed by <a class="contact-link" href="https://www.linkedin.com/in/sorif-hossain-24b946337">Sorif Hossain</a> | 
-        <a class="contact-link" href="https://whatsapp.com/channel/0029VbBJa7iIt5rtVuNzfP2g">Code Hack with Sorif</a>
-    </div>
-"""
-st.markdown(footer_html, unsafe_allow_html=True)
+# --- Sidebar for Profile (Hidden in mobile by default) ---
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=100)
+    st.title("Developer")
+    st.write("**Sorif Hossain**")
+    st.write("💼 [LinkedIn](https://www.linkedin.com/in/sorif-hossain-24b946337)")
+    st.write("📱 [WhatsApp](https://whatsapp.com/channel/0029VbBJa7iIt5rtVuNzfP2g)")
+
+# Footer
+st.markdown(f"<p style='text-align:center; color:#999; margin-top:50px;'>© {datetime.datetime.now().year} PhishGuard AI</p>", unsafe_allow_html=True)
