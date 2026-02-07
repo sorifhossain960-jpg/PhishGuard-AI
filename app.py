@@ -50,8 +50,8 @@ local_engine.fit(data['url'], data['label'])
 
 # --- Sidebar (Developer Profile) ---
 with st.sidebar:
-    # Google Drive Direct Link Format
-    st.image("https://lh3.googleusercontent.com/d/1g8m2qR4KBFj0aiIpLR59Yh930xTRtvUe", width=150)
+    # তোমার ছবির বদলে একটি প্রফেশনাল সিকিউরিটি আইকন
+    st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=120)
     st.title("PhishGuard Panel")
     st.write(f"**Security Status:** {status}")
     st.divider()
