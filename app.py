@@ -107,16 +107,16 @@ url_input = st.text_input("🔗 Paste URL below to scan for threats:", placehold
 
 if st.button("🔍 INITIATE DEEP SCAN"):
     if url_input:
-        # Loading Spinner শুরু হবে এখান থেকে
+        # Loading Spinner starts here
         with st.spinner("AI Brain is performing deep pattern analysis..."):
             
-            # Phase 1: Local Prediction (Fast)
+            # Phase 1: Local Prediction
             try:
                 local_pred = local_model.predict([url_input])[0]
             except:
                 local_pred = "Uncertain"
 
-            # Phase 2: Gemini AI Analysis (Slow - Spinner active here)
+            # Phase 2: Gemini AI Analysis
             ai_response_text = ""
             final_verdict = ""
             
@@ -146,7 +146,7 @@ if st.button("🔍 INITIATE DEEP SCAN"):
                 ai_response_text = "AI Module Offline."
                 final_verdict = local_pred
 
-        # --- Visualization (Spinner শেষ হওয়ার পর রেজাল্ট দেখাবে) ---
+        # --- Visualization (Shows after spinner ends) ---
         st.markdown("### 📊 Investigation Results")
         col1, col2 = st.columns([1, 1])
         
