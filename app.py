@@ -6,10 +6,10 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import make_pipeline
 import datetime
 
-# --- 1. PAGE CONFIGURATION & THEME ---
+# --- 1. PAGE CONFIGURATION ---
 st.set_page_config(page_title="PhishGuard AI Security", page_icon="🛡️", layout="wide")
 
-# Custom CSS for Professional UI/UX
+# --- CUSTOM CSS STYLING ---
 st.markdown("""
     <style>
     .main { background-color: #f4f7f6; }
@@ -45,45 +45,41 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. AI & HYBRID ML SYSTEM SETUP ---
+# --- 2. SYSTEM SETUP ---
 
-# Google Gemini AI Setup
+# Google Gemini AI Config
 try:
     API_KEY = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=API_KEY)
     gemini_model = genai.GenerativeModel("gemini-1.5-flash")
     status_html = '<span class="status-online">● Active</span>'
-except Exception as e:
+except Exception:
     gemini_model = None
-    status_html = f'<span class="status-offline">● Offline</span>'
+    status_html = '<span class="status-offline">● Offline</span>'
 
-# Local ML Engine Setup 
+# Local ML Engine Config
 @st.cache_data
 def load_ml_engine():
     try:
-        # Load the dataset
         df = pd.read_csv("phish.csv")
+        # Ensure correct column names
         df.rename(columns={df.columns[0]: "url", df.columns[1]: "label"}, inplace=True)
         
-        # Correct Mapping for Dataset ---
-        
-        df['label'] = df['label'].map({
+        # Robust Mapping
+        df['label'] = df['label'].astype(str).str.lower().str.strip().map({
             'benign': 'Safe', 
             'phishing': 'Phishing', 
             'defacement': 'Phishing'
         })
-        
-        # Remove any rows that didn't match (cleanup)
         return df.dropna()
-    except Exception as e:
-        # Fallback if file load fails
+    except Exception:
         return pd.DataFrame({'url': ['google.com'], 'label': ['Safe']})
 
 data = load_ml_engine()
 local_model = make_pipeline(CountVectorizer(), MultinomialNB())
 local_model.fit(data['url'], data['label'])
 
-# --- 3. SIDEBAR (Developer Profile) ---
+# --- 3. SIDEBAR ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=90)
     st.title("PhishGuard Console")
@@ -102,7 +98,7 @@ with st.sidebar:
     st.divider()
     st.info("Hybrid AI system combining Local Machine Learning and Google Gemini LLM.")
 
-# --- 4. MAIN USER INTERFACE ---
+# --- 4. MAIN INTERFACE ---
 st.title("🛡️ PhishGuard AI Security")
 st.markdown("##### *Advanced Threat Detection | Hybrid Intelligence Model*")
 st.divider()
@@ -111,20 +107,21 @@ url_input = st.text_input("🔗 Paste URL below to scan for threats:", placehold
 
 if st.button("🔍 INITIATE DEEP SCAN"):
     if url_input:
-        # Phase 1: Local Prediction
-        try:
-            local_pred = local_model.predict([url_input])[0]
-        except:
-            local_pred = "Uncertain"
-
-        # Phase 2: Gemini AI Analysis
+        # Loading Spinner শুরু হবে এখান থেকে
         with st.spinner("AI Brain is performing deep pattern analysis..."):
+            
+            # Phase 1: Local Prediction (Fast)
+            try:
+                local_pred = local_model.predict([url_input])[0]
+            except:
+                local_pred = "Uncertain"
+
+            # Phase 2: Gemini AI Analysis (Slow - Spinner active here)
             ai_response_text = ""
             final_verdict = ""
             
             if gemini_model:
                 try:
-                    # Strict prompt to force a clear verdict
                     prompt = (f"Act as a security expert. Analyze URL: '{url_input}'. "
                               "Check for phishing, defacement, and spoofing. "
                               "If it is a known official site (like google, facebook, sbi), say Safe. "
@@ -135,21 +132,21 @@ if st.button("🔍 INITIATE DEEP SCAN"):
                     response = gemini_model.generate_content(prompt)
                     ai_response_text = response.text
                     
-                    # Logic: Prioritize AI but consider Local
+                    # Logic: Prioritize AI
                     if "PHISHING" in ai_response_text.upper():
                         final_verdict = "Phishing"
                     elif "SAFE" in ai_response_text.upper():
                         final_verdict = "Safe"
                     else:
-                        final_verdict = local_pred # Fallback to local
-                except Exception as e:
-                    ai_response_text = "AI Connection Limit or Error. Switching to Local DB."
+                        final_verdict = local_pred 
+                except Exception:
+                    ai_response_text = "AI Connection Limit. Using Local DB."
                     final_verdict = local_pred
             else:
                 ai_response_text = "AI Module Offline."
                 final_verdict = local_pred
 
-        # Visualization
+        # --- Visualization (Spinner শেষ হওয়ার পর রেজাল্ট দেখাবে) ---
         st.markdown("### 📊 Investigation Results")
         col1, col2 = st.columns([1, 1])
         
@@ -176,7 +173,7 @@ if st.button("🔍 INITIATE DEEP SCAN"):
         # Expert Note
         st.markdown(f"""
             <div class="info-note">
-                <b>ℹ️ Important Note:</b> Local AI checks against 30,000+ known patterns (Phishing, Defacement, Benign). 
+                <b>ℹ️ Important Note:</b> Local AI checks against 30,000+ known patterns. 
                 However, <b>Google Gemini AI</b> provides real-time heuristic analysis with 99% accuracy. 
                 The <b>Final Verdict</b> prioritizes Gemini's decision.
             </div>
