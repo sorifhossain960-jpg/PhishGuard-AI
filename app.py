@@ -103,6 +103,7 @@ with st.sidebar:
     st.write("💼 [LinkedIn Profile](https://www.linkedin.com/in/sorif-hossain-489768388/)")
     st.write("📧 [Email Me](mailto:codehackwithsorif@gmail.com)")
     st.write("📱 [WhatsApp Channel](https://whatsapp.com/channel/0029VbBJa7iIt5rtVuNzfP2g)")
+    st.write("▶️ [Youtube Channel](https://www.youtube.com/channel/UCmGne4ahuFAAfD4sYP9nLDw)")
     st.divider()
     st.info(f"Hybrid AI System using Local ML + {active_model_name}")
 
